@@ -1,0 +1,20 @@
+{
+  "site": "demo-app",
+  "pages": [
+    {
+      "path": "/",
+      "description": "Dashboard with account overview, activity stats, and quick shortcut buttons to the Projects and Settings pages.",
+      "notes": ""
+    },
+    {
+      "path": "/projects",
+      "description": "Lists all projects with a live search filter. Contains the Create Project button which opens the project creation form.",
+      "notes": "Creating a project: click create_project_button to open the form, fill project_name_input (required), optionally choose priority_select (High/Medium/Low), then click save_project_button. Cancel with cancel_project_button."
+    },
+    {
+      "path": "/settings",
+      "description": "Edit profile display name and toggle email notification preferences.",
+      "notes": ""
+    }
+  ]
+}
