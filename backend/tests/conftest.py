@@ -9,15 +9,15 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app import deps
-from app.agent.fake_llm import GOLDEN_PATH_SCRIPT, FakeLLM
+from app.agent.stub_llm import StubLLM
+from app.agent.decisions import AgentDecision
 from app.main import app
 
 
 @pytest.fixture(autouse=True)
-def force_fake_llm():
+def force_stub_llm():
     original = deps.engine.llm
-    if not isinstance(original, FakeLLM):
-        deps.engine.llm = FakeLLM()
+    deps.engine.llm = StubLLM()
     yield
     deps.engine.llm = original
 
@@ -25,7 +25,7 @@ def force_fake_llm():
 @pytest.fixture()
 def client():
     deps.store.reset()
-    deps.engine.llm.script = list(GOLDEN_PATH_SCRIPT)
+    deps.engine.llm.script = []
     return TestClient(app)
 
 

@@ -8,9 +8,15 @@ import type { ActionResult, AgentAction } from "./types";
 export * from "./types";
 export { observe, WAID_ATTR } from "./observer";
 export { createExecutor, ActionError, type ExecutorOptions } from "./executor";
-export { NavexClient, ApiError, type ClientOptions } from "./client";
+export {
+  NavexClient,
+  ApiError,
+  type ClientOptions,
+  type Transport,
+  type TransportResponse,
+} from "./client";
 export { runTurn, type RunTurnArgs, type RunTurnCallbacks } from "./driver";
-export { ChatWidget, type WidgetCallbacks } from "./chat-widget";
+export { ChatWidget, type WidgetCallbacks, type WidgetOptions } from "./chat-widget";
 
 export interface WebAgentOptions extends ExecutorOptions {
   apiKey: string;

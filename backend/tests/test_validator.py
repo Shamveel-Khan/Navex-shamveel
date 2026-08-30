@@ -135,3 +135,44 @@ def test_any_element_action_without_observed_page_is_rejected():
 
     assert not verdict.ok
     assert "no_page_observed" in verdict.error
+
+
+def test_element_not_found_includes_hint_when_id_lives_on_different_page():
+    """When an element id is not on the observed page but IS registered on
+    another page, the error hint tells the LLM which page to navigate to."""
+    from app.agent.validator import _reject
+
+    custom_registry = load_registry()
+    custom_registry.pages = [
+        _make_page_def("/zones", elements=[
+            UIElement(id="create_zone_button", type="button", label="Create Zone"),
+        ]),
+    ]
+
+    state = PageState(
+        path="/",
+        elements=[UIElement(id="home_button", type="button", label="Home")],
+    )
+
+    verdict = validate_action(
+        ClickAction(type="click", element_id="create_zone_button"),
+        custom_registry,
+        state,
+    )
+
+    assert not verdict.ok
+    assert "element_not_found" in verdict.error
+    assert "/zones" in verdict.error
+    assert "navigate" in verdict.error
+    assert "create_zone_button" not in verdict.valid_ids
+    assert "home_button" in verdict.valid_ids
+
+
+def _make_page_def(path: str, elements: list[UIElement] = None):
+    from app.registry import PageDef
+    page = PageDef.model_validate({
+        "path": path,
+        "description": f"Page at {path}",
+        "elements": [e.model_dump() for e in (elements or [])],
+    })
+    return page

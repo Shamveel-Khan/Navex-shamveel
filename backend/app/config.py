@@ -26,7 +26,6 @@ class Settings(BaseSettings):
         default="openai/gpt-4o-mini",
         validation_alias=AliasChoices("NAVEX_LLM_MODEL", "NAVEX_OPENROUTER_MODEL"),
     )
-    use_fake_llm: bool = True
     llm_temperature: float = 0.0
     llm_max_tokens: int = 800
 

@@ -9,7 +9,7 @@ from app.session import Session, StepRecord
 
 
 class Decider(Protocol):
-    def decide(self, session: Session) -> AgentDecision: ...
+    def decide(self, session: Session, registry: SiteRegistry) -> AgentDecision: ...
 
 
 class AgentEngine:
@@ -26,8 +26,12 @@ class AgentEngine:
         self.max_invalid_streak = max_invalid_streak
 
     def advance(
-        self, session: Session, observation: ActionResultPayload | None = None
+        self,
+        session: Session,
+        observation: ActionResultPayload | None = None,
+        registry: SiteRegistry | None = None,
     ) -> TurnAction | TurnFinal:
+        active_registry = registry or self.registry
         if observation is not None:
             self._record_outcome(session, observation)
 
@@ -45,7 +49,7 @@ class AgentEngine:
             )
 
         for _ in range(3):
-            decision = self.llm.decide(session)
+            decision = self.llm.decide(session, active_registry)
 
             if decision.status != "action":
                 reason = (
@@ -67,7 +71,7 @@ class AgentEngine:
                 return self._finalize(session, reason, decision.message)
 
             verdict = validate_action(
-                decision.action, self.registry, session.page_state
+                decision.action, active_registry, session.page_state
             )
             if not verdict.ok:
                 session.invalid_streak += 1

@@ -1,8 +1,8 @@
 from app.agent.decisions import AgentDecision
 from app.agent.engine import AgentEngine
-from app.agent.fake_llm import FakeLLM
+from app.agent.stub_llm import StubLLM
 from app.registry import load_registry
-from app.schemas.actions import ClickAction, FillAction
+from app.schemas.actions import ClickAction, FillAction, NavigateAction
 from app.schemas.protocol import ActionResultPayload
 from app.schemas.ui import PageState, UIElement
 from app.session import Session
@@ -18,7 +18,7 @@ def completed(message: str = "Done."):
 
 def make_engine(script) -> AgentEngine:
     return AgentEngine(
-        llm=FakeLLM(list(script)), registry=load_registry(), max_invalid_streak=2
+        llm=StubLLM(list(script)), registry=load_registry(), max_invalid_streak=2
     )
 
 
@@ -49,7 +49,7 @@ def test_first_time_action_is_returned_normally():
     engine = make_engine([decision(ClickAction(type="click", element_id="btn_a"))])
     session = make_session()
 
-    turn = engine.advance(session)
+    turn = engine.advance(session, registry=load_registry())
 
     assert turn.type == "action"
     assert turn.step == 1
@@ -64,10 +64,10 @@ def test_identical_action_triggers_warning_then_recovers():
         ]
     )
     session = make_session()
-    first = engine.advance(session)
+    first = engine.advance(session, registry=load_registry())
     assert first.type == "action"
 
-    second = engine.advance(session, ok_observation())
+    second = engine.advance(session, ok_observation(), registry=load_registry())
 
     assert second.type == "final"
     assert second.reason == "complete"
@@ -84,9 +84,9 @@ def test_three_identical_actions_abort_the_turn():
         ]
     )
     session = make_session()
-    engine.advance(session)
+    engine.advance(session, registry=load_registry())
 
-    final = engine.advance(session, ok_observation())
+    final = engine.advance(session, ok_observation(), registry=load_registry())
 
     assert final.type == "final"
     assert final.reason == "failed"
@@ -104,13 +104,13 @@ def test_alternating_different_actions_are_not_flagged():
     )
     session = make_session()
 
-    first = engine.advance(session)
+    first = engine.advance(session, registry=load_registry())
     assert first.type == "action"
 
-    second = engine.advance(session, ok_observation())
+    second = engine.advance(session, ok_observation(), registry=load_registry())
     assert second.type == "action"
 
-    final = engine.advance(session, ok_observation())
+    final = engine.advance(session, ok_observation(), registry=load_registry())
     assert final.type == "final"
     assert final.reason == "complete"
     assert not [item for item in session.feedback if "repeated_action" in item]
@@ -129,7 +129,7 @@ def test_premature_failure_at_step_zero_gets_one_nudge_then_recovers():
     )
     session = make_session()
 
-    final = engine.advance(session)
+    final = engine.advance(session, registry=load_registry())
 
     assert final.type == "final"
     assert final.reason == "complete"
@@ -146,13 +146,13 @@ def test_persistent_immediate_failure_is_accepted_after_nudge():
     )
     session = make_session()
 
-    first = engine.advance(session)
+    first = engine.advance(session, registry=load_registry())
     assert first.type == "final"
     assert first.message == "Impossible."
 
     second_session = make_session()
     second_session.premature_failure_nudged = True
-    second = engine.advance(second_session)
+    second = engine.advance(second_session, registry=load_registry())
     assert second.type == "final"
     assert second.message == "Really impossible."
     assert len(engine.llm.script) == 0
@@ -169,11 +169,11 @@ def test_new_turn_resets_repeat_tracking():
     )
     session = make_session()
 
-    engine.advance(session)
-    engine.advance(session, ok_observation())
+    engine.advance(session, registry=load_registry())
+    engine.advance(session, ok_observation(), registry=load_registry())
     session.start_turn("second task")
 
-    turn = engine.advance(session)
+    turn = engine.advance(session, registry=load_registry())
 
     assert turn.type == "action"
     assert turn.step == 1

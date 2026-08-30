@@ -1,8 +1,14 @@
 import { type FormEvent, useState } from "react";
-import { addProject, type Priority } from "../state/projects";
+import {
+  addProject,
+  getAssignees,
+  type Priority,
+  type ProjectStatus,
+} from "../state/projects";
 import { useToast } from "./Toast";
 
 const PRIORITIES: Priority[] = ["High", "Medium", "Low"];
+const STATUSES: ProjectStatus[] = ["Active", "On Hold", "Completed"];
 
 interface Props {
   onClose: () => void;
@@ -13,6 +19,9 @@ export default function ProjectModal({ onClose }: Props) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [priority, setPriority] = useState<Priority>("Medium");
+  const [status, setStatus] = useState<ProjectStatus>("Active");
+  const [assignee, setAssignee] = useState("Unassigned");
+  const [budget, setBudget] = useState("");
   const [error, setError] = useState("");
 
   function handleSubmit(e: FormEvent<HTMLFormElement>) {
@@ -21,7 +30,14 @@ export default function ProjectModal({ onClose }: Props) {
       setError("Project name is required.");
       return;
     }
-    addProject({ name, description, priority });
+    addProject({
+      name,
+      description,
+      priority,
+      status,
+      assignee,
+      budget: budget ? Number(budget) : 0,
+    });
     showToast(`Project "${name.trim()}" was created.`);
     onClose();
   }
@@ -58,19 +74,68 @@ export default function ProjectModal({ onClose }: Props) {
             onChange={(e) => setDescription(e.target.value)}
           />
 
-          <label htmlFor="project-priority">Priority</label>
-          <select
-            data-waid="priority_select"
-            id="project-priority"
-            value={priority}
-            onChange={(e) => setPriority(e.target.value as Priority)}
-          >
-            {PRIORITIES.map((p) => (
-              <option key={p} value={p}>
-                {p}
-              </option>
-            ))}
-          </select>
+          <div className="field-grid">
+            <div className="field-cell">
+              <label htmlFor="project-priority">Priority</label>
+              <select
+                data-waid="priority_select"
+                id="project-priority"
+                value={priority}
+                onChange={(e) => setPriority(e.target.value as Priority)}
+              >
+                {PRIORITIES.map((p) => (
+                  <option key={p} value={p}>
+                    {p}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="field-cell">
+              <label htmlFor="project-status">Status</label>
+              <select
+                data-waid="project_status_select"
+                id="project-status"
+                value={status}
+                onChange={(e) => setStatus(e.target.value as ProjectStatus)}
+              >
+                {STATUSES.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="field-cell">
+              <label htmlFor="project-assignee">Assignee</label>
+              <select
+                data-waid="project_assignee_select"
+                id="project-assignee"
+                value={assignee}
+                onChange={(e) => setAssignee(e.target.value)}
+              >
+                {getAssignees().map((a) => (
+                  <option key={a} value={a}>
+                    {a}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="field-cell">
+              <label htmlFor="project-budget">Budget (USD)</label>
+              <input
+                data-waid="project_budget_input"
+                id="project-budget"
+                type="number"
+                min={0}
+                placeholder="e.g. 15000"
+                value={budget}
+                onChange={(e) => setBudget(e.target.value)}
+              />
+            </div>
+          </div>
 
           <div className="modal-actions">
             <button

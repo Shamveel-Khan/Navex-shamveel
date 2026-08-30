@@ -48,8 +48,6 @@ def _pages_section(registry: SiteRegistry) -> str:
     lines = ["AVAILABLE PAGES"]
     for page in registry.pages:
         lines.append(f"- {page.path}: {page.description}")
-        if page.notes.strip():
-            lines.append(f"  note: {page.notes.strip()}")
     return "\n".join(lines)
 
 
@@ -73,9 +71,6 @@ def _page_state_section(session: Session, registry: SiteRegistry) -> str:
         if el.options:
             line += f" | options: {', '.join(el.options)}"
         lines.append(line)
-    registered = registry.page(state.path)
-    if registered and registered.notes.strip():
-        lines.append(f"page note: {registered.notes.strip()}")
     return "\n".join(lines)
 
 

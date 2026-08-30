@@ -109,6 +109,41 @@ def test_chat_rejects_malformed_body(client, auth_headers):
 
 
 def test_golden_path_full_turn(client, auth_headers):
+    from app.agent.decisions import AgentDecision
+    from app.schemas.actions import (
+        ClickAction,
+        FillAction,
+        NavigateAction,
+    )
+
+    deps.engine.llm.script = [
+        AgentDecision(
+            status="action",
+            thought="",
+            action=NavigateAction(type="navigate", path="/projects"),
+        ),
+        AgentDecision(
+            status="action",
+            thought="",
+            action=ClickAction(type="click", element_id="create_project_button"),
+        ),
+        AgentDecision(
+            status="action",
+            thought="",
+            action=FillAction(
+                type="fill",
+                element_id="project_name_input",
+                value="Alpha",
+            ),
+        ),
+        AgentDecision(
+            status="action",
+            thought="",
+            action=ClickAction(type="click", element_id="save_project_button"),
+        ),
+        AgentDecision(status="complete", message='Project "Alpha" was created.'),
+    ]
+
     session_id = create_session(client, auth_headers)
 
     first = client.post(

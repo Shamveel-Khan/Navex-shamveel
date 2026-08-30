@@ -3,25 +3,24 @@ from typing import Annotated
 from fastapi import Header, HTTPException, status
 
 from app.agent.engine import AgentEngine, Decider
-from app.agent.fake_llm import FakeLLM
 from app.agent.llm import RealLLM
 from app.config import get_settings
-from app.registry import load_registry
-from app.storage.memory import SessionStore
+from app.registry import SiteRegistry, load_registry
+from app.storage.memory import SessionStore, SiteMapStore
 
 store = SessionStore()
+map_store = SiteMapStore()
+registry: SiteRegistry = load_registry()
+
+
+def get_registry() -> SiteRegistry:
+    return registry
 
 
 def build_engine() -> AgentEngine:
-    settings = get_settings()
-    registry = load_registry()
-    llm: Decider
-    if settings.use_fake_llm:
-        llm = FakeLLM()
-    else:
-        llm = RealLLM(registry=registry)
+    llm: Decider = RealLLM(registry=registry)
     return AgentEngine(
-        llm=llm, registry=registry, max_steps=settings.max_agent_steps
+        llm=llm, registry=registry, max_steps=get_settings().max_agent_steps
     )
 
 
@@ -30,6 +29,10 @@ engine = build_engine()
 
 def get_store() -> SessionStore:
     return store
+
+
+def get_map_store() -> SiteMapStore:
+    return map_store
 
 
 def get_engine() -> AgentEngine:

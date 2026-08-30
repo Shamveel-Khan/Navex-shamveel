@@ -121,7 +121,7 @@ class RealLLM:
             )
         self._structured_mode: bool | None = None
 
-    def decide(self, session: Session) -> AgentDecision:
+    def decide(self, session: Session, registry: SiteRegistry) -> AgentDecision:
         if self._owns_client and not get_settings().llm_api_key:
             return AgentDecision(
                 status="failed",
@@ -131,7 +131,7 @@ class RealLLM:
                 ),
             )
 
-        messages = build_messages(session, self.registry)
+        messages = build_messages(session, registry)
         try:
             raw = self._complete(messages)
         except Exception as err:

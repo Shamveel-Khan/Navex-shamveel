@@ -14,6 +14,7 @@ class ChatRequest(BaseModel):
     session_id: str = Field(min_length=1)
     message: str = Field(min_length=1, max_length=2000)
     page: PageState | None = None
+    site: str | None = None  # if provided, bind session to this site map
 
 
 class ActionResultPayload(BaseModel):
@@ -33,6 +34,7 @@ class ActionResultPayload(BaseModel):
 class ObservationRequest(BaseModel):
     session_id: str = Field(min_length=1)
     result: ActionResultPayload
+    site: str | None = None  # optional re-bind to a different uploaded site map
 
 
 class TurnAction(BaseModel):

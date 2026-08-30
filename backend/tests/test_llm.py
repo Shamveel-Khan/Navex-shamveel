@@ -90,7 +90,7 @@ def test_parse_decision_rejects_invented_action_type():
 def test_decide_uses_strict_schema_and_parses_action():
     llm, stub = make_llm([VALID_ACTION_JSON])
 
-    decision = llm.decide(base_session())
+    decision = llm.decide(base_session(), load_registry())
 
     assert decision.status == "action"
     assert decision.action.path == "/projects"
@@ -107,7 +107,7 @@ def test_prompt_contains_pages_rules_elements_and_request():
         ]
     )
 
-    llm.decide(session)
+    llm.decide(session, load_registry())
 
     kwargs = stub.chat.completions.calls[0]
     system = kwargs["messages"][0]["content"]
@@ -124,7 +124,7 @@ def test_prompt_contains_pages_rules_elements_and_request():
 def test_repairs_invalid_json_on_second_call():
     llm, stub = make_llm(["sorry, here is my plan instead", VALID_ACTION_JSON])
 
-    decision = llm.decide(base_session())
+    decision = llm.decide(base_session(), load_registry())
 
     assert decision.status == "action"
     assert len(stub.chat.completions.calls) == 2
@@ -138,7 +138,7 @@ def test_repairs_invalid_json_on_second_call():
 def test_unusable_output_becomes_failed_decision():
     llm, _stub = make_llm(["garbage", "still garbage"])
 
-    decision = llm.decide(base_session())
+    decision = llm.decide(base_session(), load_registry())
 
     assert decision.status == "failed"
     assert "could not use" in decision.message
@@ -150,8 +150,8 @@ def test_falls_back_to_json_object_when_schema_unsupported():
     )
     session = base_session()
 
-    first = llm.decide(session)
-    second = llm.decide(session)
+    first = llm.decide(session, load_registry())
+    second = llm.decide(session, load_registry())
 
     assert first.status == "action"
     assert second.status == "action"
@@ -166,7 +166,7 @@ def test_falls_back_to_json_object_when_schema_unsupported():
 def test_transport_error_becomes_failed_decision():
     llm, _stub = make_llm([ConnectionError("network down")])
 
-    decision = llm.decide(base_session())
+    decision = llm.decide(base_session(), load_registry())
 
     assert decision.status == "failed"
     assert "reach the AI backend" in decision.message
@@ -178,7 +178,7 @@ def test_rate_limit_errors_are_retried_then_succeed():
     )
     llm.retry_delays = (0.0, 0.0)
 
-    decision = llm.decide(base_session())
+    decision = llm.decide(base_session(), load_registry())
 
     assert decision.status == "action"
     assert len(stub.chat.completions.calls) == 3
@@ -188,7 +188,7 @@ def test_rate_limit_exhaustion_fails_gracefully():
     llm, stub = make_llm([rate_limit_error(), rate_limit_error(), rate_limit_error()])
     llm.retry_delays = (0.0, 0.0)
 
-    decision = llm.decide(base_session())
+    decision = llm.decide(base_session(), load_registry())
 
     assert decision.status == "failed"
     assert "reach the AI backend" in decision.message
@@ -204,7 +204,7 @@ def test_missing_key_returns_config_hint(monkeypatch):
     get_settings.cache_clear()
     try:
         llm = RealLLM(registry=load_registry())
-        decision = llm.decide(base_session())
+        decision = llm.decide(base_session(), load_registry())
     finally:
         get_settings.cache_clear()
 
@@ -239,7 +239,7 @@ def test_engine_accepts_real_llm_as_decider():
     llm, _stub = make_llm(['{"status":"complete","message":"Done."}'])
     engine = AgentEngine(llm=llm, registry=load_registry())
 
-    final = engine.advance(base_session())
+    final = engine.advance(base_session(), registry=load_registry())
 
     assert final.type == "final"
     assert final.reason == "complete"

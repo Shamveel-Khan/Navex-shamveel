@@ -1,13 +1,23 @@
 from app.registry import load_registry
 
-DEMO_APP_ROUTES = {"/", "/projects", "/settings"}
+DEMO_APP_ROUTES = {
+    "/",
+    "/projects",
+    "/projects/view",
+    "/team",
+    "/tasks",
+    "/invoices",
+    "/reports",
+    "/activity",
+    "/settings",
+}
 
 
 def test_registry_loads_and_validates() -> None:
     registry = load_registry()
 
     assert registry.site == "demo-app"
-    assert len(registry.pages) >= 3
+    assert len(registry.pages) >= 9
 
 
 def test_registry_paths_match_demo_app_routes() -> None:

@@ -27,6 +27,7 @@ class Session:
     premature_failure_nudged: bool = False
     status: str = "idle"
     created_at: float = field(default_factory=time.time)
+    site: str | None = None  # which site map this session operates against
 
     def start_turn(self, message: str) -> None:
         self.user_request = message

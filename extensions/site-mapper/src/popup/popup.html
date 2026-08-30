@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>NAVEX Site Mapper</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f6f7fb;
+        --surface: #ffffff;
+        --border: #e3e6ee;
+        --text: #1c2333;
+        --muted: #667085;
+        --primary: #4f46e5;
+        --primary-hover: #4338ca;
+        --danger: #dc2626;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        width: 360px;
+        max-height: 560px;
+        overflow-y: auto;
+        font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        font-size: 13px;
+        background: var(--bg);
+        color: var(--text);
+      }
+      .header {
+        padding: 14px 16px;
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        position: sticky;
+        top: 0;
+      }
+      .header h1 { margin: 0 0 4px; font-size: 16px; }
+      .header .origin { color: var(--muted); font-size: 12px; word-break: break-all; }
+      .body { padding: 12px 16px 16px; display: flex; flex-direction: column; gap: 12px; }
+      .stats { display: flex; gap: 8px; }
+      .stat {
+        flex: 1;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 8px 10px;
+        text-align: center;
+      }
+      .stat b { display: block; font-size: 18px; }
+      .stat span { color: var(--muted); font-size: 11px; }
+      button {
+        font: inherit;
+        padding: 7px 12px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        cursor: pointer;
+      }
+      button.primary { background: var(--primary); border-color: var(--primary); color: #fff; }
+      button.primary:hover { background: var(--primary-hover); }
+      button.danger { color: var(--danger); border-color: #fecaca; }
+      button:disabled { opacity: 0.5; cursor: not-allowed; }
+      .row { display: flex; gap: 8px; }
+      .row > * { flex: 1; }
+      .section-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin: 4px 0; }
+      .route-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+      .route {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 6px 10px;
+      }
+      .route .path { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .route .label { color: var(--muted); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 130px; }
+      .route button { padding: 4px 8px; font-size: 12px; }
+      label.field { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--muted); }
+      label.field input {
+        font: inherit;
+        padding: 7px 10px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--surface);
+      }
+      .message { font-size: 12px; min-height: 16px; }
+      .message.ok { color: #15803d; }
+      .message.err { color: var(--danger); }
+      .page-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+      .page-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 6px 10px;
+        font-size: 12px;
+      }
+      .page-item .p { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .page-item .n { color: var(--muted); }
+      .toggle {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        font-size: 13px;
+      }
+      .toggle input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+      }
+      .hint {
+        margin: 0;
+        font-size: 11px;
+        color: var(--muted);
+        line-height: 1.4;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h1>NAVEX Site Mapper</h1>
+      <div class="origin" id="origin">…</div>
+    </div>
+    <div class="body">
+      <div class="stats">
+        <div class="stat"><b id="stat-pages">0</b><span>pages</span></div>
+        <div class="stat"><b id="stat-elements">0</b><span>elements</span></div>
+      </div>
+
+      <div class="row">
+        <button id="btn-scan" class="primary">Scan page</button>
+        <button id="btn-export">Copy JSON</button>
+        <button id="btn-download">Download</button>
+      </div>
+
+      <div class="message ok" id="message"></div>
+
+      <div>
+        <div class="section-title">Mapped pages</div>
+        <ul class="page-list" id="page-list">
+          <li class="empty" id="no-pages">No pages mapped yet.</li>
+        </ul>
+      </div>
+
+      <div>
+        <div class="section-title">Unvisited routes (found in links)</div>
+        <ul class="route-list" id="route-list">
+          <li class="message ok" id="no-routes">None — visit links to map them.</li>
+        </ul>
+      </div>
+
+      <div>
+        <div class="section-title">Send to NAVEX backend</div>
+        <label class="field">
+          Backend URL
+          <input id="backend-url" placeholder="http://localhost:8000" />
+        </label>
+        <label class="field" style="margin-top: 8px">
+          API key
+          <input id="api-key" type="password" placeholder="dev key" />
+        </label>
+        <div class="row" style="margin-top: 8px">
+          <button id="btn-send" class="primary">Send map</button>
+          <button id="btn-clear" class="danger">Clear map</button>
+        </div>
+      </div>
+
+      <div class="section-title">Chat widget</div>
+      <label class="toggle">
+        <input id="chat-enabled" type="checkbox" />
+        <span>Show chatbot on this page</span>
+      </label>
+      <p class="hint">When enabled, a floating ✦ chatbot appears on the current page. The backend URL and API key above must be set.</p>
+    </div>
+    <script type="module" src="./popup.ts"></script>
+  </body>
+</html>

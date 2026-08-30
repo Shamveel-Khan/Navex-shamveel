@@ -3,18 +3,48 @@
   "pages": [
     {
       "path": "/",
-      "description": "Dashboard with account overview, activity stats, and quick shortcut buttons to the Projects and Settings pages.",
-      "notes": ""
+      "description": "Dashboard with account overview, live stats (projects, tasks, invoices, team), a dismissible announcement banner, and quick shortcut buttons to every other page.",
+      "notes": "Use the quick action buttons to jump around: go_to_projects_button, go_to_team_button, go_to_tasks_button, go_to_invoices_button, go_to_reports_button, go_to_activity_button, go_to_settings_button. dashboard_refresh_button recomputes stats. dashboard_dismiss_announcement_button hides the announcement banner."
     },
     {
       "path": "/projects",
-      "description": "Lists all projects with a live search filter. Contains the Create Project button which opens the project creation form.",
-      "notes": "Creating a project: click create_project_button to open the form, fill project_name_input (required), optionally choose priority_select (High/Medium/Low), then click save_project_button. Cancel with cancel_project_button."
+      "description": "Lists all projects with live search and filters for status, priority, and sort order. The Create Project button opens the creation modal, and each project card opens that project's detail page at /projects/view.",
+      "notes": "Creating a project: click create_project_button to open the modal, fill project_name_input (required), optionally choose priority_select (High/Medium/Low), project_status_select (Active/On Hold/Completed), project_assignee_select, and project_budget_input, then click save_project_button or submit new_project_form. Cancel with cancel_project_button. Filter with project_status_filter, project_priority_filter, and project_sort_select; search with search_projects_input. To view a project's details, click its card (e.g. project_card_prj_001) which navigates to /projects/view."
+    },
+    {
+      "path": "/projects/view",
+      "description": "Shows the details of the currently selected project: name, description, priority, status, assignee, budget, and creation date. An empty state is shown when no project is selected.",
+      "notes": "To reach a specific project, first select it on /projects by clicking its project card. From here: edit_project_button opens the edit modal (edit_project_form with edit_project_name_input, edit_project_description_textarea, edit_project_priority_select, edit_project_status_select, edit_project_assignee_select, edit_project_budget_input, save via save_edit_project_button, cancel via cancel_edit_project_button), archive_project_button archives the project, back_to_projects_button returns to the project list."
+    },
+    {
+      "path": "/team",
+      "description": "Lists workspace members with search and a role filter. Supports inviting new members and removing existing ones.",
+      "notes": "Adding a member: click add_member_button to open the modal, fill member_name_input and member_email_input (required), choose member_role_select (Admin/Member/Viewer), then click invite_member_button (or submit team_member_form); cancel with cancel_invite_button. Removing a member: choose a member name from member_to_remove_select and click remove_member_button. Filter with member_role_filter and search with team_search_input."
+    },
+    {
+      "path": "/tasks",
+      "description": "Lists tasks with live search, status and priority filters, export, and bulk clearing of completed tasks. The Create Task button opens the task creation modal.",
+      "notes": "Creating a task: click create_task_button, fill task_title_input (required) and task_description_textarea, choose task_priority_select, task_status_select, and task_assignee_select, then click save_task_button (or submit create_task_form); cancel with cancel_task_button. Mark tasks done by clicking their checkbox, e.g. task_done_t1 through task_done_t6. clear_completed_tasks_button removes all done tasks (disabled when none are done). export_tasks_button exports. Filter with task_status_filter and task_priority_filter; search with tasks_search_input."
+    },
+    {
+      "path": "/invoices",
+      "description": "Lists invoices for clients with live search and a status filter. Supports creating invoices and marking them as paid.",
+      "notes": "Creating an invoice: click create_invoice_button, choose invoice_client_select, fill invoice_name_input and invoice_amount_input (required), then click save_invoice_button (or submit create_invoice_form); cancel with cancel_invoice_button. Mark an unpaid invoice as paid by clicking its pay button, e.g. pay_invoice_inv_001 through pay_invoice_inv_005 (the button disappears once the invoice is Paid). Filter with invoice_status_filter; search with invoices_search_input; export with export_invoices_button."
+    },
+    {
+      "path": "/reports",
+      "description": "Generates workspace reports: pick a report type (Project Report, Task Summary, Invoice Summary, Team Activity) and a period, then a preview card appears that can be exported.",
+      "notes": "Choose report_type_select and report_period_select, then click generate_report_button; the summary appears in report_preview_card. export_report_button exports the current report. Quick buttons that pre-fill and generate: generate_project_report_button and generate_invoice_summary_button."
+    },
+    {
+      "path": "/activity",
+      "description": "A chronological activity log of workspace events across projects, tasks, team, and invoices, with category filtering, export, and clearing.",
+      "notes": "Filter events with activity_filter_select (All/Project/Task/Team/Invoice). export_activity_button exports the visible log as CSV. clear_activity_button clears the log."
     },
     {
       "path": "/settings",
-      "description": "Edit profile display name and toggle email notification preferences.",
-      "notes": ""
+      "description": "Edit profile settings: display name, avatar URL, notification toggles, language, timezone, data export, and account deletion.",
+      "notes": "Update display_name_input and avatar_url_input, toggle email_notifications_checkbox, dark_mode_checkbox, and weekly_summary_checkbox, choose language_select and timezone_select, then save with save_settings_button (or submit settings_form). export_data_button emails a data copy. delete_account_button opens the account deletion modal with confirm_delete_account_button and cancel_delete_button."
     }
   ]
 }

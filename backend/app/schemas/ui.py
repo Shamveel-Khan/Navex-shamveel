@@ -11,6 +11,7 @@ class UIElement(BaseModel):
     id: str = Field(min_length=1, max_length=100)
     type: ElementType
     label: str = ""
+    description: str = ""
     disabled: bool = False
     options: list[str] | None = None
 
