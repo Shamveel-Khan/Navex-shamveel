@@ -8,6 +8,9 @@ from app.config import get_settings
 from app.registry import SiteRegistry, load_registry
 from app.storage.memory import SessionStore, SiteMapStore
 
+from app.agent.mapper import GeminiSiteMapper
+from app.agent.openjev import OpenJevDecider
+
 store = SessionStore()
 map_store = SiteMapStore()
 registry: SiteRegistry = load_registry()
@@ -18,13 +21,21 @@ def get_registry() -> SiteRegistry:
 
 
 def build_engine() -> AgentEngine:
-    llm: Decider = RealLLM(registry=registry)
+    settings = get_settings()
+    mode = (settings.decider_mode or "hybrid").lower()
+    if mode in {"hybrid", "openjev"}:
+        mapper = GeminiSiteMapper(registry=registry)
+        llm: Decider = OpenJevDecider(mapper=mapper)
+    else:
+        llm = RealLLM(registry=registry)
+
     return AgentEngine(
-        llm=llm, registry=registry, max_steps=get_settings().max_agent_steps
+        llm=llm, registry=registry, max_steps=settings.max_agent_steps
     )
 
 
 engine = build_engine()
+
 
 
 def get_store() -> SessionStore:

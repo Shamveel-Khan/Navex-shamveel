@@ -15,7 +15,19 @@
           "name": "glm-5.2"
         }
       }
+    },
+    "tryai": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "TryAI (OpenAI Compatible)",
+      "options": {
+        "baseURL": "https://tryapi.tryai.chat/v1"
+      },
+      "models": {
+        "gpt-5.6-sol": {
+          "name": "gpt-5.6-sol"
+        }
+      }
     }
   },
-  "model": "agentrouter/gpt-5.5"
+  "model": "tryai/gpt-5.6-sol"
 }

@@ -10,6 +10,8 @@ class AgentDecision(BaseModel):
     thought: str = ""
     action: AgentAction | None = None
     message: str = ""
+    choice_id: str | None = None
+    choice_label: str | None = None
 
     @model_validator(mode="after")
     def check_shape(self) -> "AgentDecision":

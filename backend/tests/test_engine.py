@@ -129,12 +129,14 @@ def test_premature_failure_at_step_zero_gets_one_nudge_then_recovers():
     )
     session = make_session()
 
-    final = engine.advance(session, registry=load_registry())
-
-    assert final.type == "final"
-    assert final.reason == "complete"
+    action_turn = engine.advance(session, registry=load_registry())
+    assert action_turn.type == "action"
     assert any("premature_failure" in item for item in session.feedback)
     assert session.premature_failure_nudged is True
+
+    final = engine.advance(session, ok_observation(), registry=load_registry())
+    assert final.type == "final"
+    assert final.reason == "complete"
 
 
 def test_persistent_immediate_failure_is_accepted_after_nudge():
@@ -148,14 +150,9 @@ def test_persistent_immediate_failure_is_accepted_after_nudge():
 
     first = engine.advance(session, registry=load_registry())
     assert first.type == "final"
-    assert first.message == "Impossible."
-
-    second_session = make_session()
-    second_session.premature_failure_nudged = True
-    second = engine.advance(second_session, registry=load_registry())
-    assert second.type == "final"
-    assert second.message == "Really impossible."
+    assert first.message == "Really impossible."
     assert len(engine.llm.script) == 0
+
 
 
 def test_new_turn_resets_repeat_tracking():

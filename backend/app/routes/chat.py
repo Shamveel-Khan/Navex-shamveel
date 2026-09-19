@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.agent.engine import AgentEngine
 from app.deps import get_engine, get_map_store, get_store, require_api_key
-from app.schemas.protocol import ChatRequest, TurnResponse
+from app.schemas.protocol import ChatRequest, TurnFinal, TurnResponse
 from app.storage.memory import SessionNotFoundError, SessionStore, SiteMapStore
 
 router = APIRouter(dependencies=[Depends(require_api_key)])

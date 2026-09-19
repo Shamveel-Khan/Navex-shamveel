@@ -110,8 +110,14 @@ class AgentEngine:
                 continue
 
             session.steps_taken += 1
+            session.previous_action = decision.action
+            session.previous_action_label = getattr(decision, "choice_label", "") or format_action(decision.action)
             session.history.append(
-                StepRecord(step=session.steps_taken, action=decision.action)
+                StepRecord(
+                    step=session.steps_taken,
+                    action=decision.action,
+                    action_label=session.previous_action_label,
+                )
             )
             return TurnAction(
                 step=session.steps_taken,
@@ -136,6 +142,7 @@ class AgentEngine:
                 record.outcome = outcome
                 break
         if observation.page is not None:
+            session.previous_page_state = session.page_state
             session.page_state = observation.page
             session.current_page = observation.page.path
         if observation.status == "failed" and observation.error:

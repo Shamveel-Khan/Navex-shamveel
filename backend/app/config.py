@@ -31,6 +31,27 @@ class Settings(BaseSettings):
 
     max_agent_steps: int = 12
 
+    decider_mode: str = Field(
+        default="hybrid",
+        validation_alias=AliasChoices("NAVEX_DECIDER_MODE"),
+    )
+    openjev_base_url: str = Field(
+        default="https://api.openjev.com/v1",
+        validation_alias=AliasChoices("NAVEX_OPENJEV_BASE_URL"),
+    )
+    openjev_api_key: str = Field(
+        default="",
+        validation_alias=AliasChoices("NAVEX_OPENJEV_API_KEY", "OPENJEV_API_KEY"),
+    )
+    openjev_model: str = Field(
+        default="openjev-v1",
+        validation_alias=AliasChoices("NAVEX_OPENJEV_MODEL"),
+    )
+    gemini_api_key: str = Field(
+        default="",
+        validation_alias=AliasChoices("NAVEX_GEMINI_API_KEY", "GEMINI_API_KEY"),
+    )
+
 
 @lru_cache
 def get_settings() -> Settings:
