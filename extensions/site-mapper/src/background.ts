@@ -35,7 +35,7 @@ async function persist(state: OriginState, origin: string): Promise<void> {
 
 function emptyMap(origin: string): SiteMap {
   return {
-    site: origin.replace(/https?:\/\//, "").replace(/\./g, "-"),
+    site: origin.replace(/^https?:\/\//, "").replace(/[\.:]/g, "-"),
     base_url: origin,
     generated_at: new Date().toISOString(),
     pages: [],
@@ -84,17 +84,20 @@ chrome.runtime.onMessage.addListener((message: MapperMessage, _sender, sendRespo
     }
 
     switch (message.type) {
+      case "ENSURE_MAP":
       case "PAGE_SCANNED": {
         const state = await loadOrigin(message.origin);
         const map = state?.map ?? emptyMap(message.origin);
+        const links = message.links || [];
         const s: OriginState = {
           map,
-          linkIndex: new Map(message.links.map((l) => [l.path, l.label])),
+          linkIndex: new Map(links.map((l) => [l.path, l.label])),
         };
         origins.set(message.origin, s);
         const changed = mergePage(s, message.page);
         s.map.generated_at = new Date().toISOString();
         await persist(s, message.origin);
+
         if (changed) {
           chrome.runtime.sendMessage({
             type: "MAP_UPDATED",

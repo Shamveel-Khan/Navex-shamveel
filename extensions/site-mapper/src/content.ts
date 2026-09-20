@@ -15,9 +15,11 @@ function originOf(): string {
 }
 
 function siteName(): string {
-  const host = window.location.hostname.replace(/^www\./, "");
-  return host.replace(/\./g, "-");
+  return window.location.origin
+    .replace(/^https?:\/\//, "")
+    .replace(/[\.:]/g, "-");
 }
+
 
 function sendPage(message: MapperMessage): void {
   chrome.runtime.sendMessage(message as unknown as Record<string, unknown>);

@@ -24,4 +24,8 @@ export default defineConfig({
       },
     },
   },
+  css: {
+    postcss: {},
+  },
 });
+

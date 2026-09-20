@@ -31,9 +31,11 @@ const relay: Transport = async (path, body) => {
 };
 
 function siteName(): string {
-  const host = window.location.hostname.replace(/^www\./, "");
-  return host.replace(/\./g, "-");
+  return window.location.origin
+    .replace(/^https?:\/\//, "")
+    .replace(/[\.:]/g, "-");
 }
+
 
 let client: NavexClient | null = null;
 let widget: ChatWidget | null = null;

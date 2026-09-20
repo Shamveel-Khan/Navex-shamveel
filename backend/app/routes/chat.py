@@ -34,12 +34,36 @@ def chat(
         # Bind session to the uploaded site map if one was provided.
         if payload.site:
             site_registry = map_store.get(payload.site)
+            if site_registry is None:
+                norm = payload.site.replace("-", "").replace(":", "").replace(".", "")
+                for existing_site in map_store.all():
+                    exist_norm = existing_site.site.replace("-", "").replace(":", "").replace(".", "")
+                    if norm in exist_norm or exist_norm in norm:
+                        site_registry = existing_site
+                        break
+
+            if site_registry is None:
+                if any(k in payload.site for k in ["localhost", "127-0-0-1", "127.0.0.1", "demo-app"]):
+                    from app.deps import get_registry
+                    site_registry = get_registry()
+                elif payload.page is not None:
+                    from app.registry import PageDef, SiteRegistry
+                    site_registry = SiteRegistry(
+                        site=payload.site,
+                        pages=[
+                            PageDef(
+                                path=payload.page.path,
+                                description=payload.page.title or "Current observed page",
+                                elements=payload.page.elements,
+                            )
+                        ],
+                    )
+                    map_store.put(site_registry)
+
             if site_registry is not None:
-                session.site = payload.site
+                session.site = site_registry.site
             else:
-                # Site map not yet uploaded — return a helpful error so the
-                # extension can retry after sending the map.
-                return TurnFinal(  # type: ignore[return-value]
+                return TurnFinal(
                     type="final",
                     reason="failed",
                     message=(
@@ -47,6 +71,7 @@ def chat(
                         "Please upload the site map first by calling POST /api/site-maps."
                     ),
                 )
+
 
         if payload.page is not None:
             session.page_state = payload.page

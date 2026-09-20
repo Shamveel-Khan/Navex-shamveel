@@ -20,6 +20,8 @@ from app.schemas.actions import AgentAction
 from app.schemas.ui import PageState
 from app.session import Session
 
+from app.logger import log_openjev_request, log_openjev_response
+
 logger = logging.getLogger(__name__)
 
 
@@ -121,19 +123,50 @@ class OpenJevDecider:
 
         instructions = build_openjev_instructions(session, registry, choices)
 
+        # Log outgoing request
+        prev_state_str = summarize_page_state(session.previous_page_state)
+        prev_action_str = f"{format_action(session.previous_action)} ({session.previous_action_label})" if session.previous_action else "None (first step)"
+        curr_state_str = summarize_page_state(session.page_state)
+
+        log_openjev_request(
+            endpoint=f"{self.base_url.rstrip('/')}/chat/completions",
+            model=self.model,
+            user_goal=session.user_request,
+            previous_state=prev_state_str,
+            previous_action=prev_action_str,
+            current_state=curr_state_str,
+            choices=choices,
+            instructions=instructions,
+        )
+
         # Call OpenJev API or fall back to choice resolution heuristic
+        is_heuristic = False
         selected_id, thought = self._call_openjev(session, registry, choices, instructions)
 
         if selected_id not in choice_map:
             # Fallback to smart heuristic if selected_id is invalid
+            is_heuristic = True
             selected_id, thought = self._heuristic_choice(session, registry, choices)
 
         chosen = choice_map.get(selected_id)
         if chosen is None:
+            log_openjev_response(
+                selected_choice_id="NONE",
+                thought="No valid action could be determined",
+                decision_action=None,
+                is_heuristic=is_heuristic,
+            )
             return AgentDecision(
                 status="failed",
                 message="OpenJev could not determine a valid next action.",
             )
+
+        log_openjev_response(
+            selected_choice_id=chosen.id,
+            thought=thought or chosen.label,
+            decision_action=chosen.action,
+            is_heuristic=is_heuristic,
+        )
 
         if chosen.is_terminal or chosen.id == "job_already_done":
             return AgentDecision(
@@ -151,6 +184,7 @@ class OpenJevDecider:
             choice_id=chosen.id,
             choice_label=chosen.label,
         )
+
 
     def _call_openjev(
         self,

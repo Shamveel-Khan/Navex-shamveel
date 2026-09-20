@@ -3,6 +3,7 @@ from typing import Protocol
 from app.agent.decisions import AgentDecision
 from app.agent.prompts import format_action
 from app.agent.validator import validate_action
+from app.logger import log_agent_engine_step
 from app.registry import SiteRegistry
 from app.schemas.protocol import ActionResultPayload, TurnAction, TurnFinal
 from app.session import Session, StepRecord
@@ -119,6 +120,12 @@ class AgentEngine:
                     action_label=session.previous_action_label,
                 )
             )
+            log_agent_engine_step(
+                step=session.steps_taken,
+                action_or_final="ACTION",
+                details=format_action(decision.action),
+                verdict="VALID",
+            )
             return TurnAction(
                 step=session.steps_taken,
                 thought=decision.thought,
@@ -152,4 +159,11 @@ class AgentEngine:
         self, session: Session, reason: str, message: str
     ) -> TurnFinal:
         session.status = "done"
+        log_agent_engine_step(
+            step=session.steps_taken,
+            action_or_final="FINAL",
+            details=f"reason='{reason}', message='{message}'",
+            verdict="TERMINATED",
+        )
         return TurnFinal(reason=reason, message=message)
+
